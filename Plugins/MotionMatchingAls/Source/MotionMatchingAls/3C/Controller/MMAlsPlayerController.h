@@ -109,3 +109,4 @@ private:
 	UPROPERTY(EditAnywhere, Category = "MMAls|Inputs|Debug")
 	UInputAction* IA_Ragdoll;
 };
+

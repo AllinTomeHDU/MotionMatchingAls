@@ -61,6 +61,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MMAls|Ragdoll", meta = (AllowPrivateAccess = "true"))
 	FMMAlsRagdollValues RagdollValues;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MMAls|Ragdoll", meta = (AllowPrivateAccess = "true"))
+	float FlailRate;
+
 	UPROPERTY(EditAnywhere, Category = "MMAls|Trajectory|Settings")
 	FMMAlsTrajectorySettings TrajectorySettings;
 
@@ -124,12 +127,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MMAls|Layering", meta = (AllowPrivateAccess = "true"))
 	FMMAlsHandIK HandIK;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "MMAls|Ragdoll", meta = (AllowPrivateAccess = "true"))
-	float FlailRate;
-
 public:
 	FORCEINLINE EMMAlsAnimationLOD GetAnimationLOD() const { return AnimationLOD; }
 	FORCEINLINE FTransform GetTraversalAttachTransform() const { return TraversalAttachTransform; }
-
+	FORCEINLINE FMMAlsRagdollValues GetRagdollingValues() const { return RagdollValues; }
+	FORCEINLINE FMMAlsAimOffset GetAimOffset() const { return AimOffset; }
 };
 

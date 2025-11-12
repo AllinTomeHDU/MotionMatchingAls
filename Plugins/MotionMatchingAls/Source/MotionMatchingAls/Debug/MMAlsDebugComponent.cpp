@@ -78,6 +78,11 @@ void UMMAlsDebugComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	{
 		bIsTraversal = TraversalComp->IsTraversal();
 	}
+
+	if (AnimInst)
+	{
+		bIsRagdolling = AnimInst->GetRagdollingValues().bIsRagdolling;
+	}
 }
 
 
