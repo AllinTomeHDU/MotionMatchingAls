@@ -1,3 +1,9 @@
+UunrealEngine版本：5.6.1
+
+VisualStudio版本：2022
+
+
+
 第一次实习接触到的项目是关于ALS的，对ALS的第一印象是复杂，像一座难以跨越的大山，通过代码逻辑结合动画曲线，以实现最终丝滑的效果。 
 
 实习经历并不轻松，基于ALS的功能扩充我往往不能做出理想的最终效果，原因之一是我当时对于UE开发的经验不足，原因之二可能是这套系统本来就难以做二次开发，最棘手的问题就是多种曲线与逻辑控制相关（动画曲线、混合曲线、数据曲线），所有添加的动画资产都要设置并检查其曲线值，曲线值影响最终姿势的混合结果，如果不能理清所有曲线的使用，将很难为系统添加新的动画状态机节点。
@@ -28,7 +34,7 @@ GASP除了官方提供的蓝图项目，还有其他开发者分享的版本，�
 
 链接中的两个项目也是作为了本项目的参考，经过权衡，本项目最终决定采用的技术架构为：
 
-1. 运动姿势：通过MotionMatching进行选择，通过ChooserTable做数据库的分类选择（步态/姿态/地空）；
+1. 运动姿势：通过MotionMatching进行选择，通过ChooserTable做数据库的分类选择；
 2. 旋转模式：通过OffsetRootBone、Steering控制角色朝向，以及原地转向、瞄准的功能；
 3. 脚部IK与锁定：通过FootPlacement与LegIK实现，若开启此功能会偶然性触发交叉腿现象；
 4. Overlay：采用曲线控制的分层混合输出上半身多姿势，以及曲线控制HandIK，通过AnimLayerInterface动态链接；
@@ -37,6 +43,10 @@ GASP除了官方提供的蓝图项目，还有其他开发者分享的版本，�
 7. Camera：参考ALS-Refactored的实现，CameraComponent作为骨骼网格体附加值角色网格上，通过动画蓝图进行平滑过渡；
 8. 音效系统：通过Interface的方式去获取并播放MetaSounds数据资产；
 9. Debug：独立的DebugComponent能支持对联机模式下本地多角色的数据监控，可以根据需要自行修改源码添加需要监控的数据。
+
+动画蓝图在C++采用线程安全策略，严格通过FAnimInstanceProxy的PreUpdate、Update、PostUpdate控制数据更新时序，但也仅仅只在动画线程做了轨迹预测和Layering曲线的计算，在开发过程中需警惕Proxy更新时序导致的bug，比如动画蓝图中姿势的评估会在Update与PostUpdate之间，通常情况下我是在PreUpdate进行采样，在Update进行纯数据的计算，最后在PostUpdate将更新后的数据写回AnimInstance并做事件通知，但有时动画蓝图的姿势评估可能要使用到PostUpdate前更新的数据（即最新的数据，例如Ragdoll涉及到物理模拟与动画控制切换时），这时的处理方案可以通过动画蓝图的PropertyAccess直接访问源数据（通过Chr或MoveComp的指针直接访问其最新数据）或在PreUpdate提前写回这些数据。
+
+
 
 
 
