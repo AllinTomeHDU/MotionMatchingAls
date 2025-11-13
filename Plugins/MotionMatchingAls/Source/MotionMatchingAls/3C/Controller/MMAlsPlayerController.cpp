@@ -300,7 +300,11 @@ void AMMAlsPlayerController::JumpAction(const FInputActionValue& Value)
 	}
 
 	auto ObstacleCrossingComp = Chr->FindComponentByClass<UMMAlsObstacleCrossingComponent>();
-	if (!IsValid(ObstacleCrossingComp) || ObstacleCrossingComp->IsTraversal()) return;
+	if (!IsValid(ObstacleCrossingComp))
+	{
+		Chr->Jump();
+		return;
+	}
 
 	if (!ObstacleCrossingComp->TryObstacleCrossing())
 	{

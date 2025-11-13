@@ -40,7 +40,7 @@ GASP除了官方提供的蓝图项目，还有其他开发者分享的版本，�
 4. Overlay：采用曲线控制的分层混合输出上半身多姿势，以及曲线控制HandIK，通过AnimLayerInterface动态链接；
 5. Traversal：与Main动画蓝图解耦，通过蒙太奇播放单独动画，或通过子动画蓝图的动态链接输出姿势；
 6. Ragdoll：参考ALS-Community的实现，并做好位置上的网络同步，修改PhysicsAsset的物理约束；
-7. Camera：参考ALS-Refactored的实现，CameraComponent作为骨骼网格体附加值角色网格上，通过动画蓝图进行平滑过渡；
+7. Camera：参考ALS-Refactored的实现，CameraComponent作为骨骼网格体附加在角色网格上，通过动画蓝图进行平滑过渡；
 8. 音效系统：通过Interface的方式去获取并播放MetaSounds数据资产；
 9. Debug：独立的DebugComponent能支持对联机模式下本地多角色的数据监控，可以根据需要自行修改源码添加需要监控的数据。
 
