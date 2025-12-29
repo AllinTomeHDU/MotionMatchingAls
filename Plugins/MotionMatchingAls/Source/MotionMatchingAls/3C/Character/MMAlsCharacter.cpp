@@ -422,7 +422,7 @@ void AMMAlsCharacter::OnOverlayPoseChanged(const EMMAlsOverlayPose& PrevOverlayP
 
 		if (IsValid(OverlayPoseSetting.OverlayAnimClass))
 		{
-			OverlayMeshComp->SetAnimClass(OverlayPoseSetting.OverlayMeshAnimClass);
+			OverlayMeshComp->SetAnimInstanceClass(OverlayPoseSetting.OverlayMeshAnimClass);
 		}
 	}
 

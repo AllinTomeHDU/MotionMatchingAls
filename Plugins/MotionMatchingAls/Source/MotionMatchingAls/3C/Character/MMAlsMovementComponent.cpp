@@ -18,7 +18,7 @@ UMMAlsMovementComponent::UMMAlsMovementComponent()
 
 	MaxAcceleration = 800.f;
 	BrakingFrictionFactor = 1.f;
-	CrouchedHalfHeight = 60.f;
+	SetCrouchedHalfHeight(60.f);
 	GroundFriction = 5.f;
 	MaxWalkSpeed = 500.f;
 	MaxWalkSpeedCrouched = 300.f;

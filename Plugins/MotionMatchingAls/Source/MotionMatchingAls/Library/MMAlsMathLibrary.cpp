@@ -4,7 +4,7 @@
 #include "MMAlsMathLibrary.h"
 
 
-inline float UMMAlsMathLibrary::DamperExactAlpha(const float DeltaTime, const float HalfLife)
+float UMMAlsMathLibrary::DamperExactAlpha(const float DeltaTime, const float HalfLife)
 {
 	// https://theorangeduck.com/page/spring-roll-call#exactdamper
 	return 1.0f - FMath::InvExpApprox(Ln2 / (HalfLife + UE_SMALL_NUMBER) * DeltaTime);
@@ -14,12 +14,12 @@ inline float UMMAlsMathLibrary::DamperExactAlpha(const float DeltaTime, const fl
 	// FMath::InvExpApprox(x)提供指数近似函数，约等于e^(-x)
 }
 
-inline FRotator UMMAlsMathLibrary::DamperExactRotation(const FRotator& Current, const FRotator& Target, const float DeltaTime, const float HalfLife)
+FRotator UMMAlsMathLibrary::DamperExactRotation(const FRotator& Current, const FRotator& Target, const float DeltaTime, const float HalfLife)
 {
 	return LerpRotation(Current, Target, DamperExactAlpha(DeltaTime, HalfLife));
 }
 
-inline FRotator UMMAlsMathLibrary::LerpRotation(const FRotator& From, const FRotator& To, const float Ratio)
+FRotator UMMAlsMathLibrary::LerpRotation(const FRotator& From, const FRotator& To, const float Ratio)
 {
 	FRotator Result = To - From;
 	Result.Normalize();
@@ -34,7 +34,7 @@ inline FRotator UMMAlsMathLibrary::LerpRotation(const FRotator& From, const FRot
 	return Result;
 }
 
-inline float UMMAlsMathLibrary::RemapAngleForCounterClockwiseRotation(const float Angle)
+float UMMAlsMathLibrary::RemapAngleForCounterClockwiseRotation(const float Angle)
 {
 	// CounterClockwiseRotationAngleThreshold是逆时针旋转阈值，是防抖缓冲区，避免角度插值在180°附近出现跳变
 	return Angle > 180.0f - CounterClockwiseRotationAngleThreshold ? Angle - 360.0f : Angle;
