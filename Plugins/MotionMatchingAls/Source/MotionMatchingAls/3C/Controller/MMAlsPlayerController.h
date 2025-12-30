@@ -7,8 +7,6 @@
 #include "InputAction.h"
 #include "MMAlsPlayerController.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(OnMoveInputUpdate, const FVector2D);
-
 /**
  * 
  */
@@ -20,11 +18,11 @@ class MOTIONMATCHINGALS_API AMMAlsPlayerController : public APlayerController
 public:
 	AMMAlsPlayerController();
 
-	OnMoveInputUpdate OnMoveInputUpdateDelegate;
-
 protected:
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual void SetupInputComponent() override;
 	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
 
 	void SetupLocomotionInputs();
 	void SetupDebugInputs();
@@ -51,8 +49,11 @@ protected:
 	void OverlayPoseAction(const FInputActionValue& Value);
 	void RagdollingAction(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void OnRep_Chr();
+
 private:
-	UPROPERTY()
+	UPROPERTY(ReplicatedUsing = OnRep_Chr)
 	class AMMAlsCharacter* Chr;
 
 	UPROPERTY()

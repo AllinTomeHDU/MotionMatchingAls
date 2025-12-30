@@ -40,6 +40,8 @@ float UMMAlsAnimInstance::GetTrajectoryTurnAngle()
 
 void UMMAlsAnimInstance::UpdatePoseSearchTrajectoryCollision()
 {
+	if (Trajectory.Samples.IsEmpty()) return;
+
 	UPoseSearchTrajectoryLibrary::HandleTransformTrajectoryWorldCollisions(
 		GetWorld(),
 		this,

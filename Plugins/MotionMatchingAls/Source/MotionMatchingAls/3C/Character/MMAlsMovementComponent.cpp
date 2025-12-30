@@ -58,14 +58,6 @@ void UMMAlsMovementComponent::BeginPlay()
 	SetGait(EMMAlsGait::Running, true);
 	SetStance(EMMAlsStance::Standing, true);
 	SetRotationMode(EMMAlsRotationMode::VelocityDirection, true);
-
-	MMAlsPC = Cast<AMMAlsPlayerController>(CharacterOwner->GetController());
-	if (IsValid(MMAlsPC) && MMAlsPC->IsLocalController())
-	{
-		MMAlsPC->OnMoveInputUpdateDelegate.AddLambda(
-			[this](const FVector2D& NewInputValue) { SetIsFullMoveInput(NewInputValue); }
-		);
-	}
 }
 
 void UMMAlsMovementComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -277,6 +269,8 @@ bool UMMAlsMovementComponent::CheckIsMoveForward() const
 	FRotator AccelerationRot = GetCurrentAcceleration().ToOrientationRotator();
 	FRotator ConotrollerRot = CharacterOwner->GetControlRotation();
 	float MovementAngle = (AccelerationRot - ConotrollerRot).GetNormalized().Yaw;
+
+	UE_LOG(LogTemp, Log, TEXT("MovementAngle:%f"), MovementAngle);
 
 	auto CameraComp = CharacterOwner->FindComponentByClass<UMMAlsCameraComponent>();
 	if (IsValid(CameraComp) && CameraComp->GetViewMode() == EMMAlsViewMode::FirstPerson)

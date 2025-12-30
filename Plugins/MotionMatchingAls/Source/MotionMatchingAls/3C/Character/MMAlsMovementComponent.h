@@ -41,6 +41,9 @@ public:
 	void SetLandedInfo(bool bLanded);
 
 	UFUNCTION(BlueprintCallable)
+	void SetIsFullMoveInput(const FVector2D& MoveInputValue);
+
+	UFUNCTION(BlueprintCallable)
 	void SetMoveStickMode(EMMAlsMoveStickMode NewStickMode, bool bForce = false);
 
 	UFUNCTION(BlueprintCallable)
@@ -67,7 +70,6 @@ protected:
 
 	void SetMoveMode(EMMAlsMoveMode NewMoveMode, bool bForce = false);
 	void SetMaxSpeeds();
-	void SetIsFullMoveInput(const FVector2D& MoveInputValue);
 
 	/**
 	* OnStatesChanged

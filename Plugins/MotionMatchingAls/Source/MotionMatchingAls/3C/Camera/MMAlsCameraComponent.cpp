@@ -93,10 +93,7 @@ void UMMAlsCameraComponent::SetViewMode(EMMAlsViewMode NewViewMode, bool bForce)
 			Server_SetViewMode(NewViewMode);
 		}
 
-		if (CharacterOwner->IsLocallyControlled())
-		{
-			OnViewModeChangedDelegate.Broadcast(NewViewMode);
-		}
+		OnViewModeChangedDelegate.Broadcast(NewViewMode);
 	}
 }
 

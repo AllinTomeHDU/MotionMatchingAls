@@ -10,11 +10,26 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
+
+
+#define CHECK_CHARACTER_AND_MOVECOMP \
+if (!IsValid(Chr)) \
+{ \
+	Chr = Cast<AMMAlsCharacter>(GetPawn()); \
+	if (!Chr) return; \
+} \
+if (!IsValid(MoveComp)) \
+{ \
+	MoveComp = Cast<UMMAlsMovementComponent>(Chr->GetCharacterMovement()); \
+	if (!MoveComp) return; \
+}
 
 
 AMMAlsPlayerController::AMMAlsPlayerController()
 {
 	bReplicates = true;
+	bOnlyRelevantToOwner = true;
 
 	static ConstructorHelpers::FObjectFinder<UInputMappingContext> IMC_LocomotionAsset(
 		TEXT("/MotionMatchingAls/3C/Controller/Inputs/Locomotion/IMC_MMAls_Locomotion.IMC_MMAls_Locomotion")
@@ -129,6 +144,13 @@ AMMAlsPlayerController::AMMAlsPlayerController()
 	}
 }
 
+void AMMAlsPlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AMMAlsPlayerController, Chr, COND_OwnerOnly);
+}
+
 void AMMAlsPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -144,16 +166,21 @@ void AMMAlsPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	Chr = Cast<AMMAlsCharacter>(GetPawn());
-	if (IsValid(Chr))
-	{
-		MoveComp = Cast<UMMAlsMovementComponent>(Chr->GetCharacterMovement());
-	}
-	
 	if (PlayerCameraManager)
 	{
 		PlayerCameraManager->ViewPitchMin = -60.f;
 		PlayerCameraManager->ViewPitchMax = 60.f;
+	}
+}
+
+void AMMAlsPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	Chr = Cast<AMMAlsCharacter>(GetPawn());
+	if (IsValid(Chr))
+	{
+		MoveComp = Cast<UMMAlsMovementComponent>(Chr->GetCharacterMovement());
 	}
 }
 
@@ -207,7 +234,7 @@ void AMMAlsPlayerController::SetupDebugInputs()
 
 void AMMAlsPlayerController::MoveAction(const FInputActionValue& Value)
 {
-	if (!Chr) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
 
 	const FVector2D InputValue = Value.Get<FVector2D>();
 	const FRotator DirRot(0.f, GetControlRotation().Yaw, 0.f);
@@ -221,7 +248,7 @@ void AMMAlsPlayerController::MoveAction(const FInputActionValue& Value)
 	Chr->AddMovementInput(ForwardDir, InputValue.Y);
 	Chr->AddMovementInput(RightDir, InputValue.X);
 
-	OnMoveInputUpdateDelegate.Broadcast(InputValue);
+	MoveComp->SetIsFullMoveInput(InputValue);
 }
 
 void AMMAlsPlayerController::LookAction(const FInputActionValue& Value)
@@ -234,29 +261,31 @@ void AMMAlsPlayerController::LookAction(const FInputActionValue& Value)
 
 void AMMAlsPlayerController::WalkRunSwitchAction(const FInputActionValue& Value)
 {
-	if (!IsValid(MoveComp) || MoveComp->IsAiming()) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
+	if (MoveComp->IsAiming()) return;
 
 	MoveComp->GetGait() == EMMAlsGait::Running ? MoveComp->SetGait(EMMAlsGait::Walking) : MoveComp->SetGait(EMMAlsGait::Running);
 }
 
 void AMMAlsPlayerController::SprintingAction(const FInputActionValue& Value)
 {
-	if (!IsValid(MoveComp) || MoveComp->IsAiming() || MoveComp->GetGait() == EMMAlsGait::Sprinting) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
+	if (MoveComp->IsAiming() || MoveComp->GetGait() == EMMAlsGait::Sprinting) return;
 	 
 	MoveComp->CheckCanSprint() ? MoveComp->SetGait(EMMAlsGait::Sprinting) : MoveComp->SetGait(EMMAlsGait::Running);
 } 
 
 void AMMAlsPlayerController::SprintingEndAction(const FInputActionValue& Value)
 {
-	if (!IsValid(MoveComp) || MoveComp->IsAiming()) return;
-
+	CHECK_CHARACTER_AND_MOVECOMP;
+	if (MoveComp->IsAiming()) return;
 
 	MoveComp->SetGait(EMMAlsGait::Running);
 }
 
 void AMMAlsPlayerController::CrouchingAction(const FInputActionValue& Value)
 {
-	if (!IsValid(MoveComp)) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
 	if (MoveComp->IsCrouching() || MoveComp->IsFalling()) return;
 
 	MoveComp->SetStance(EMMAlsStance::Crouching);
@@ -264,14 +293,13 @@ void AMMAlsPlayerController::CrouchingAction(const FInputActionValue& Value)
 
 void AMMAlsPlayerController::CrouchingEndAction(const FInputActionValue& Value)
 {
-	if (!IsValid(MoveComp)) return;
-
+	CHECK_CHARACTER_AND_MOVECOMP;
 	MoveComp->SetStance(EMMAlsStance::Standing);
 }
 
 void AMMAlsPlayerController::AimingAction(const FInputActionValue& Value)
 {
-	if (!IsValid(MoveComp)) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
 	if (MoveComp->IsAiming() || MoveComp->GetGait() == EMMAlsGait::Sprinting) return;
 
 	// 问题思考，当角色沿速度方向运动，是否能够开启瞄准功能？
@@ -284,14 +312,13 @@ void AMMAlsPlayerController::AimingAction(const FInputActionValue& Value)
 
 void AMMAlsPlayerController::AimingEndAction(const FInputActionValue& Value)
 {
-	if (!IsValid(MoveComp)) return;
-
+	CHECK_CHARACTER_AND_MOVECOMP;
 	MoveComp->SetIsAiming(false);
 }
 
 void AMMAlsPlayerController::JumpAction(const FInputActionValue& Value)
 {
-	if (!IsValid(Chr) || !IsValid(MoveComp)) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
 
 	if (Chr->GetMesh() && Chr->GetMesh()->GetAnimInstance())
 	{
@@ -316,7 +343,7 @@ void AMMAlsPlayerController::JumpAction(const FInputActionValue& Value)
 
 void AMMAlsPlayerController::RotationModeAction(const FInputActionValue& Value)
 {
-	if (!IsValid(MoveComp)) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
 
 	MoveComp->GetRotationMode() == EMMAlsRotationMode::VelocityDirection ? 
 		MoveComp->SetRotationMode(EMMAlsRotationMode::LookingDirection) : MoveComp->SetRotationMode(EMMAlsRotationMode::VelocityDirection);
@@ -324,7 +351,7 @@ void AMMAlsPlayerController::RotationModeAction(const FInputActionValue& Value)
 
 void AMMAlsPlayerController::ViewModeAction(const FInputActionValue& Value)
 {
-	if (!IsValid(Chr)) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
 
 	UMMAlsCameraComponent* Camera = Chr->FindComponentByClass<UMMAlsCameraComponent>();
 	if (!IsValid(Camera)) return;
@@ -335,7 +362,7 @@ void AMMAlsPlayerController::ViewModeAction(const FInputActionValue& Value)
 
 void AMMAlsPlayerController::ShoulderModeAction(const FInputActionValue& Value)
 {
-	if (!IsValid(Chr)) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
 
 	UMMAlsCameraComponent* Camera = Chr->FindComponentByClass<UMMAlsCameraComponent>();
 	if (!IsValid(Camera)) return;
@@ -357,15 +384,14 @@ void AMMAlsPlayerController::ShoulderModeAction(const FInputActionValue& Value)
 
 void AMMAlsPlayerController::OverlayBaseAction(const FInputActionValue& Value)
 {
-	if (!IsValid(Chr)) return;
-
+	CHECK_CHARACTER_AND_MOVECOMP;
 	Chr->GetOverlayBase() == EMMAlsOverlayBase::Male ? Chr->SetOverlayBase(EMMAlsOverlayBase::Female)
 													 : Chr->SetOverlayBase(EMMAlsOverlayBase::Male);
 }
 
 void AMMAlsPlayerController::OverlayPoseAction(const FInputActionValue& Value)
 {
-	if (!IsValid(Chr)) return;
+	CHECK_CHARACTER_AND_MOVECOMP;
 
 	EMMAlsOverlayPose OverlayPose = Chr->GetOverlayPose();
 
@@ -384,7 +410,11 @@ void AMMAlsPlayerController::OverlayPoseAction(const FInputActionValue& Value)
 
 void AMMAlsPlayerController::RagdollingAction(const FInputActionValue& Value)
 {
-	if (!IsValid(Chr)) return;
-
+	CHECK_CHARACTER_AND_MOVECOMP;
 	Chr->IsRagdolling() ? Chr->RagdollingEnd() : Chr->RagdollingStart();
+}
+
+void AMMAlsPlayerController::OnRep_Chr()
+{
+	MoveComp = Chr ? Cast<UMMAlsMovementComponent>(Chr->GetCharacterMovement()) : nullptr;
 }
